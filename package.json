@@ -7,8 +7,5 @@
     "date-utils": "^1.2.21",
     "dotenv": "^8.2.0",
     "puppeteer": "^3.1.0"
-  },
-  "scripts": {
-    "job-search": "node app/script/app.js"
   }
 }
