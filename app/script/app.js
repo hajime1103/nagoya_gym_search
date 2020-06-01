@@ -248,6 +248,8 @@ function getVacancyInfo(dateTime, searchResult) {
         }
     });
 
+    notifyList.push(notifyMessage)
+
     notifyList.forEach(function (message) {
 
         // ラインに通知する
