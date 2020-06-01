@@ -9,7 +9,8 @@ const qs = require('querystring');
 const BASE_URL = 'https://notify-api.line.me';
 const PATH = '/api/notify';
 const LINE_TOKEN = process.env.LINE_NOTIFY_TOKE;
-
+const LOGIN_ID = process.env.LOGIN_ID;
+const PASSWORD = process.env.PASSWORD;
 
 // １次元配列を２次元配列にする
 function splitArray(array, part) {
@@ -120,7 +121,7 @@ function getVacancyInfo(dateTime, searchResult) {
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: true, 
+        headless: true,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox'
@@ -227,6 +228,8 @@ function getVacancyInfo(dateTime, searchResult) {
 
     let notifyMessage = '現在のスポーツセンターの空き状況です。\n\n'
 
+    let notifyList = [];
+
     gymInfo.forEach(function (gymInfoValue) {
 
         if (gymInfoValue.vacancyInfo.length > 0) {
@@ -237,32 +240,58 @@ function getVacancyInfo(dateTime, searchResult) {
             })
 
             notifyMessage = notifyMessage + "\n\n"
+
+            if (notifyMessage.length > 900) {
+                notifyList.push(notifyMessage)
+                notifyMessage = '¥n'
+            }
         }
     });
 
-    // ラインに通知する
-    let config = {
-        baseURL: BASE_URL,
-        url: PATH,
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${LINE_TOKEN}`
-        },
-        data: qs.stringify({
-            message: notifyMessage,
-        })
-    };
+    notifyList.forEach(function (message) {
 
-    axios.request(config)
-        .then((res) => {
-            console.log(res.status);
-        })
-        .catch((error) => {
-            console.log(error);
-        });
+        // ラインに通知する
+        let config = {
+            baseURL: BASE_URL,
+            url: PATH,
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Bearer ${LINE_TOKEN}`
+            },
+            data: qs.stringify({
+                message: message,
+            })
+        };
+
+        axios.request(config)
+            .then((res) => {
+                console.log(res.status);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
+    });
+
+    // 検索画面に遷移する
+    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
+
+    await page.type("#LoginEmail", LOGIN_ID);
+    await page.type("#LoginPass", PASSWORD);
+
+    // 検索処理
+    page.click('.btn1');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    page.click('a[href="/account_team/mod?id=66103"]');
+    await page.waitForNavigation({timeout: 60000, waitUntil: "domcontentloaded"});
+
+    // 検索処理
+    page.click('.next');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     browser.close();
 
 })()
-.catch(e => console.error(e));
+    .catch(e => console.error(e));
