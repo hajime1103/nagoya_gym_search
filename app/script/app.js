@@ -128,6 +128,25 @@ function getVacancyInfo(dateTime, searchResult) {
         ]
     });
     const page = await browser.newPage();
+
+    // 検索画面に遷移する
+    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
+
+    await page.type("#LoginEmail", LOGIN_ID);
+    await page.type("#LoginPass", PASSWORD);
+
+    // 検索処理
+    page.click('.btn1');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    page.click('a[href="/account_team/mod?id=66103"]');
+    await page.waitForNavigation({timeout: 60000, waitUntil: "domcontentloaded"});
+
+    // 検索処理
+    page.click('.next');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // 名古屋SCの検索
     await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
 
     console.log("名古屋体育館検索処理開始");
@@ -275,23 +294,6 @@ function getVacancyInfo(dateTime, searchResult) {
             });
 
     });
-
-    // 検索画面に遷移する
-    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
-
-    await page.type("#LoginEmail", LOGIN_ID);
-    await page.type("#LoginPass", PASSWORD);
-
-    // 検索処理
-    page.click('.btn1');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    page.click('a[href="/account_team/mod?id=66103"]');
-    await page.waitForNavigation({timeout: 60000, waitUntil: "domcontentloaded"});
-
-    // 検索処理
-    page.click('.next');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     browser.close();
 
