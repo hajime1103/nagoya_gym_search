@@ -11,6 +11,8 @@ const PATH = '/api/notify';
 const LINE_TOKEN = process.env.LINE_NOTIFY_TOKE;
 const LOGIN_ID = process.env.LOGIN_ID;
 const PASSWORD = process.env.PASSWORD;
+const RYOTA_LOGIN_ID = process.env.RYOTA_LOGIN_ID;
+const RYOTA_PASSWORD = process.env.RYOTA_PASSWORD;
 
 // １次元配列を２次元配列にする
 function splitArray(array, part) {
@@ -119,6 +121,30 @@ function getVacancyInfo(dateTime, searchResult) {
     return vacancyInfo
 }
 
+function lineNotifyMessage(message){
+    // ラインに通知する
+    let config = {
+        baseURL: BASE_URL,
+        url: PATH,
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${LINE_TOKEN}`
+        },
+        data: qs.stringify({
+            message: message,
+        })
+    };
+
+    axios.request(config)
+        .then((res) => {
+            console.log(res.status);
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+}
+
 (async () => {
     const browser = await puppeteer.launch({
         headless: true,
@@ -127,26 +153,42 @@ function getVacancyInfo(dateTime, searchResult) {
             '--disable-setuid-sandbox'
         ]
     });
+
     const page = await browser.newPage();
 
-    // 検索画面に遷移する
+    // 片桐のフットサルページ更新
+    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
+
+    await page.type("#LoginEmail", RYOTA_LOGIN_ID);
+    await page.type("#LoginPass", RYOTA_PASSWORD);
+    page.click('.btn1');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    page.click('a[href="/account_team/mod?id=119057"]');
+    await page.waitForNavigation({timeout: 60000, waitUntil: "domcontentloaded"});
+
+    page.click('.next');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    page.click('a[href="/account_login/logout"]');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // ゆるスポの更新
     await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
 
     await page.type("#LoginEmail", LOGIN_ID);
     await page.type("#LoginPass", PASSWORD);
-
-    // 検索処理
     page.click('.btn1');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     page.click('a[href="/account_team/mod?id=66103"]');
     await page.waitForNavigation({timeout: 60000, waitUntil: "domcontentloaded"});
 
-    // 検索処理
     page.click('.next');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     // 名古屋SCの検索
+    lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...')
     await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
 
     console.log("名古屋体育館検索処理開始");
@@ -179,8 +221,6 @@ function getVacancyInfo(dateTime, searchResult) {
 
         // 体育館を選択
         await page.select('select[name="sisetu"]', hall.value);
-
-        tempGymInfo = {}
 
         // 今日の日付を選択
         const currentDateTime = new Date();
@@ -219,19 +259,18 @@ function getVacancyInfo(dateTime, searchResult) {
                 // 検索処理
                 page.$eval('form[name=afpage]', form => form.submit());
                 await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-                await page.screenshot({
-                    path: 'app/data/searchPage.png' // スクリーンショットを撮る
-                });
-
             }
 
         }
 
-        tempGymInfo.sportsHall = hall.name
-        tempGymInfo.vacancyInfo = vacancyInfo
+        if (vacancyInfo.length > 0) {
+            let notifyMessage = "\n\n" + hall.name + "\n\n"
 
-        gymInfo.push(tempGymInfo)
+            vacancyInfo.forEach(function (vacancyInfoValue) {
+                notifyMessage = notifyMessage + vacancyInfoValue.date + " " + vacancyInfoValue.vacancyCount + "室が空いています。\n\n"
+            })
+            lineNotifyMessage(notifyMessage)
+        }
 
         // 検索画面に遷移する
         await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
@@ -245,55 +284,7 @@ function getVacancyInfo(dateTime, searchResult) {
 
     }
 
-    let notifyMessage = '現在のスポーツセンターの空き状況です。\n\n'
-
-    let notifyList = [];
-
-    gymInfo.forEach(function (gymInfoValue) {
-
-        if (gymInfoValue.vacancyInfo.length > 0) {
-            notifyMessage = notifyMessage + gymInfoValue.sportsHall + "\n\n"
-
-            gymInfoValue.vacancyInfo.forEach(function (vacancyInfoValue) {
-                notifyMessage = notifyMessage + vacancyInfoValue.date + " " + vacancyInfoValue.vacancyCount + "室が空いています。\n\n"
-            })
-
-            notifyMessage = notifyMessage + "\n\n"
-
-            if (notifyMessage.length > 900) {
-                notifyList.push(notifyMessage)
-                notifyMessage = '¥n'
-            }
-        }
-    });
-
-    notifyList.push(notifyMessage)
-
-    notifyList.forEach(function (message) {
-
-        // ラインに通知する
-        let config = {
-            baseURL: BASE_URL,
-            url: PATH,
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Bearer ${LINE_TOKEN}`
-            },
-            data: qs.stringify({
-                message: message,
-            })
-        };
-
-        axios.request(config)
-            .then((res) => {
-                console.log(res.status);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-
-    });
+    lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を終了します...')
 
     browser.close();
 
