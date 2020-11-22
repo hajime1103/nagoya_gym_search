@@ -41,6 +41,7 @@ function getVacancyInfo(dateTime, searchResult) {
 
     let workDatetime = new Date(dateTime.getTime());
 
+    console.log(tempVacancyInfo);
     result = tempVacancyInfo[2].map(function (value, index, array) {
         if (index > 0) {
             const obj = {
@@ -147,7 +148,7 @@ function lineNotifyMessage(message) {
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox'
@@ -188,9 +189,8 @@ function lineNotifyMessage(message) {
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     // 名古屋SCの検索
-    const currentDateTime = new Date();
-    console.log(currentDateTime.toFormat("HH24"));
-    if ("08" <= currentDateTime.toFormat("HH24") && "23" >= currentDateTime.toFormat("HH24")) {
+    const searchDateTime = new Date();
+    if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
         lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...')
         await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
 
@@ -226,9 +226,12 @@ function lineNotifyMessage(message) {
             await page.select('select[name="sisetu"]', hall.value);
 
             // 今日の日付を選択
+            const currentDateTime = new Date();
             const month = currentDateTime.toFormat("MM");
             const day = currentDateTime.toFormat("DD");
 
+            console.log("month:" + month);
+            console.log("day:" + day);
             await page.select('select[name="month"]', month);
             await page.select('select[name="day"]', day);
 
@@ -248,8 +251,9 @@ function lineNotifyMessage(message) {
                     return list.map(data => data.textContent);
                 });
 
-                vacancyInfo = vacancyInfo.concat(getVacancyInfo(currentDateTime, searchResult));
-
+                if(searchResult.length > 0){
+                    vacancyInfo = vacancyInfo.concat(getVacancyInfo(currentDateTime, searchResult));
+                }
                 currentDateTime.setTime(currentDateTime.getTime() + 14 * 86400000);
 
                 isExistNext = false
@@ -257,7 +261,6 @@ function lineNotifyMessage(message) {
                 isExistNext = await page.$('input[class=sp025a]').then(res => !!res);
 
                 if (isExistNext) {
-
                     // 検索処理
                     page.$eval('form[name=afpage]', form => form.submit());
                     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
