@@ -188,6 +188,14 @@ function lineNotifyMessage(message) {
     page.click('.next');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
+    await page.goto('https://www.net-menber.com/mypage');
+
+    page.click('a[href="/account_team/mod?id=137497"]');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    page.click('.next');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
     // 名古屋SCの検索
     const searchDateTime = new Date();
     if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
