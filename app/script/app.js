@@ -160,40 +160,40 @@ function lineNotifyMessage(message) {
     // 片桐のフットサルページ更新
     await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
 
-    await page.type("#LoginEmail", RYOTA_LOGIN_ID);
-    await page.type("#LoginPass", RYOTA_PASSWORD);
+    await page.type('input[name="em"]', RYOTA_LOGIN_ID);
+    await page.type('input[name="pw"]', RYOTA_PASSWORD);
     page.click('.btn1');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('a[href="/account_team/mod?id=119057"]');
+    page.click('a[href="/myp/team/edit?team_id=119057"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('.next');
+    page.click('.btn2');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('a[href="/account_login/logout"]');
+    page.click('a[href="/myp/card_use/logout"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     // ゆるスポの更新
     await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
 
-    await page.type("#LoginEmail", LOGIN_ID);
-    await page.type("#LoginPass", PASSWORD);
+    await page.type('input[name="em"]', LOGIN_ID);
+    await page.type('input[name="pw"]', PASSWORD);
     page.click('.btn1');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('a[href="/account_team/mod?id=66103"]');
+    page.click('a[href="/myp/team/edit?team_id=66103"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('.next');
+    page.click('.btn2');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     await page.goto('https://www.net-menber.com/mypage');
 
-    page.click('a[href="/account_team/mod?id=137497"]');
+    page.click('a[href="/myp/team/edit?team_id=137497"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('.next');
+    page.click('.btn2');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     // 名古屋SCの検索
