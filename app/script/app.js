@@ -13,6 +13,7 @@ const LOGIN_ID = process.env.LOGIN_ID;
 const PASSWORD = process.env.PASSWORD;
 const RYOTA_LOGIN_ID = process.env.RYOTA_LOGIN_ID;
 const RYOTA_PASSWORD = process.env.RYOTA_PASSWORD;
+const NAKA_SC_LINE_TOKEN = process.env.NAKA_SC_LINE_NOTIFY_TOKEN;
 
 // １次元配列を２次元配列にする
 function splitArray(array, part) {
@@ -122,7 +123,7 @@ function getVacancyInfo(dateTime, searchResult) {
     return vacancyInfo
 }
 
-function lineNotifyMessage(message) {
+function lineNotifyMessage(message, token) {
     // ラインに通知する
     let config = {
         baseURL: BASE_URL,
@@ -130,7 +131,7 @@ function lineNotifyMessage(message) {
         method: 'post',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${LINE_TOKEN}`
+            'Authorization': `Bearer ${token}`
         },
         data: qs.stringify({
             message: message,
@@ -196,10 +197,116 @@ function lineNotifyMessage(message) {
     page.click('.btn2');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    // 名古屋SCの検索
     const searchDateTime = new Date();
+
+    // 中SC用の検索
     if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
-        lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...')
+        lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...', NAKA_SC_LINE_TOKEN)
+        await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
+
+        console.log("名古屋体育館検索処理開始");
+
+        // 種目をバレーボールに選択
+        page.select('select[name="syumoku"]', '025');
+
+        // リロードがかかるので少し待つ
+        // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+        await page.waitFor(1000)
+
+        const gymInfo = []
+
+        // バレーボールが使える施設一覧を取得する
+        let listSelector = 'select[name="sisetu"] > option';
+        let sportsHall = await page.$$eval(listSelector, list => {
+            return list.map(data => {
+                return {
+                    value: data.value,
+                    name: data.innerHTML
+                }
+            });
+        });
+
+        // 未選択のデータを除去
+        sportsHall = sportsHall.filter(item => (item.value == "1301" || item.value == "1302"));
+
+        // 体育館ごとの空き情報の抽出
+        for (let hall of sportsHall) {
+
+            // 体育館を選択
+            await page.select('select[name="sisetu"]', hall.value);
+
+            // 今日の日付を選択
+            const currentDateTime = new Date();
+            const month = currentDateTime.toFormat("MM");
+            const day = currentDateTime.toFormat("DD");
+
+            console.log("month:" + month);
+            console.log("day:" + day);
+            await page.select('select[name="month"]', month);
+            await page.select('select[name="day"]', day);
+
+            // 検索処理
+            page.click('input[name=B1]');
+            await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+            let isExistNext = true
+            let vacancyInfo = []
+
+            while (isExistNext) {
+
+                // 検索結果の情報を収集する
+                let listSelector = '.AKITABLE > tbody > tr > td';
+
+                var searchResult = await page.$$eval(listSelector, list => {
+                    return list.map(data => data.textContent);
+                });
+
+                if(searchResult.length > 0){
+                    vacancyInfo = vacancyInfo.concat(getVacancyInfo(currentDateTime, searchResult));
+                }
+                currentDateTime.setTime(currentDateTime.getTime() + 14 * 86400000);
+
+                isExistNext = false
+                // input[name="afimage"]があり続ける限り繰り返す
+                isExistNext = await page.$('input[class=sp025a]').then(res => !!res);
+
+                if (isExistNext) {
+                    // 検索処理
+                    page.$eval('form[name=afpage]', form => form.submit());
+                    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+                }
+
+            }
+
+            if (vacancyInfo.length > 0) {
+                let notifyMessage = "\n\n" + hall.name + "\n\n"
+
+                vacancyInfo.forEach(function (vacancyInfoValue) {
+                    notifyMessage = notifyMessage + vacancyInfoValue.date + " " + vacancyInfoValue.vacancyCount + "室が空いています。\n\n"
+                })
+                lineNotifyMessage(notifyMessage, NAKA_SC_LINE_TOKEN)
+            }
+
+            // 検索画面に遷移する
+            await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
+
+            // 種目をバレーボールに選択
+            page.select('select[name="syumoku"]', '025');
+            await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+            // リロードがかかるので少し待つ
+            await page.waitFor(1000)
+
+        }
+
+        lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を終了します...', NAKA_SC_LINE_TOKEN)
+    }
+
+    await page.waitFor(180000)
+
+    // 名古屋SCの検索
+    if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
+        lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...', LINE_TOKEN)
         await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
 
         console.log("名古屋体育館検索処理開始");
@@ -282,7 +389,7 @@ function lineNotifyMessage(message) {
                 vacancyInfo.forEach(function (vacancyInfoValue) {
                     notifyMessage = notifyMessage + vacancyInfoValue.date + " " + vacancyInfoValue.vacancyCount + "室が空いています。\n\n"
                 })
-                lineNotifyMessage(notifyMessage)
+                lineNotifyMessage(notifyMessage, LINE_TOKEN)
             }
 
             // 検索画面に遷移する
@@ -297,7 +404,7 @@ function lineNotifyMessage(message) {
 
         }
 
-        lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を終了します...')
+        lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を終了します...', LINE_TOKEN)
     }
 
     browser.close();
