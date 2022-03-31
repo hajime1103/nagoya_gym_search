@@ -166,6 +166,8 @@ function lineNotifyMessage(message, token) {
     page.click('.btn1');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
+    await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+
     page.click('a[href="/myp/team/edit?team_id=119057"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
@@ -183,13 +185,15 @@ function lineNotifyMessage(message, token) {
     page.click('.btn1');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
+    await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+
     page.click('a[href="/myp/team/edit?team_id=66103"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     page.click('.btn2');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    await page.goto('https://www.net-menber.com/mypage');
+    await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
 
     page.click('a[href="/myp/team/edit?team_id=137497"]');
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
@@ -332,7 +336,7 @@ function lineNotifyMessage(message, token) {
         });
 
         // 未選択のデータを除去
-        sportsHall = sportsHall.filter(item => item.value != "0000");
+        sportsHall = sportsHall.filter(item => (item.value != "0000" || item.value != "1301" || item.value != "1302"));
 
         // 体育館ごとの空き情報の抽出
         for (let hall of sportsHall) {
