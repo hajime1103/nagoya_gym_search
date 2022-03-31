@@ -306,8 +306,6 @@ function lineNotifyMessage(message, token) {
         lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を終了します...', NAKA_SC_LINE_TOKEN)
     }
 
-    await page.waitFor(180000)
-
     // 名古屋SCの検索
     if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
         lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...', LINE_TOKEN)
@@ -336,7 +334,7 @@ function lineNotifyMessage(message, token) {
         });
 
         // 未選択のデータを除去
-        sportsHall = sportsHall.filter(item => (item.value != "0000" || item.value != "1301" || item.value != "1302"));
+        sportsHall = sportsHall.filter(item => (item.value != "0000" && item.value != "1301" && item.value != "1302"));
 
         // 体育館ごとの空き情報の抽出
         for (let hall of sportsHall) {
