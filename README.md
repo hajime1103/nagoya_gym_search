@@ -6,3 +6,7 @@ node app/script/app.js
 
 # デプロイ
 githubにpushするとherokuに自動デプロイされる
+
+# 環境変数設定
+
+# 

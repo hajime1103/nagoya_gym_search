@@ -149,7 +149,9 @@ function lineNotifyMessage(message, token) {
 
 (async () => {
     const browser = await puppeteer.launch({
-        headless: true,
+        // headless: true,
+        headless: false,
+        slowMo: 100,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox'
@@ -178,28 +180,28 @@ function lineNotifyMessage(message, token) {
     await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     // ゆるスポの更新
-    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
+    // await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
 
-    await page.type('input[name="em"]', LOGIN_ID);
-    await page.type('input[name="pw"]', PASSWORD);
-    page.click('.btn1');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+    // await page.type('input[name="em"]', LOGIN_ID);
+    // await page.type('input[name="pw"]', PASSWORD);
+    // page.click('.btn1');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
 
-    page.click('a[href="/myp/team/edit?team_id=66103"]');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+    // page.click('a[href="/myp/team/edit?team_id=66103"]');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('.btn2');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+    // page.click('.btn2');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
 
-    page.click('a[href="/myp/team/edit?team_id=137497"]');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+    // page.click('a[href="/myp/team/edit?team_id=137497"]');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
-    page.click('.btn2');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+    // page.click('.btn2');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
     const searchDateTime = new Date();
 
