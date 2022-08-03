@@ -149,8 +149,8 @@ function lineNotifyMessage(message, token) {
 
 (async () => {
     const browser = await puppeteer.launch({
-        // headless: true,
-        headless: false,
+        headless: true,
+        // headless: false,
         slowMo: 100,
         args: [
             '--no-sandbox',
