@@ -159,49 +159,7 @@ function lineNotifyMessage(message, token) {
     });
 
     const page = await browser.newPage();
-
-    // 片桐のフットサルページ更新
-    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
-
-    await page.type('input[name="em"]', RYOTA_LOGIN_ID);
-    await page.type('input[name="pw"]', RYOTA_PASSWORD);
-    page.click('.btn1');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
-
-    page.click('a[href="/myp/team/edit?team_id=119057"]');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    page.click('.btn2');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    page.click('a[href="/myp/card_use/logout"]');
-    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    // ゆるスポの更新
-    // await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
-
-    // await page.type('input[name="em"]', LOGIN_ID);
-    // await page.type('input[name="pw"]', PASSWORD);
-    // page.click('.btn1');
-    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
-
-    // page.click('a[href="/myp/team/edit?team_id=66103"]');
-    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    // page.click('.btn2');
-    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
-
-    // page.click('a[href="/myp/team/edit?team_id=137497"]');
-    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
-
-    // page.click('.btn2');
-    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
 
     const searchDateTime = new Date();
 
@@ -209,11 +167,11 @@ function lineNotifyMessage(message, token) {
     if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
         lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...', NAKA_SC_LINE_TOKEN)
         await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
-
         console.log("名古屋体育館検索処理開始");
 
         // 種目をバレーボールに選択
-        page.select('select[name="syumoku"]', '025');
+        let syumoku = await page.waitForSelector('select[name="syumoku"]');
+        syumoku.select('select[name="syumoku"]', '025');
 
         // リロードがかかるので少し待つ
         // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
@@ -297,7 +255,8 @@ function lineNotifyMessage(message, token) {
             await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
 
             // 種目をバレーボールに選択
-            page.select('select[name="syumoku"]', '025');
+            syumoku = await page.waitForSelector('select[name="syumoku"]');
+            syumoku.select('select[name="syumoku"]', '025');
             await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
             // リロードがかかるので少し待つ
@@ -312,11 +271,12 @@ function lineNotifyMessage(message, token) {
     if ("08" <= searchDateTime.toFormat("HH24") && "23" >= searchDateTime.toFormat("HH24")) {
         lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を開始します...', LINE_TOKEN)
         await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
-
+        await page.waitFor(2000);
         console.log("名古屋体育館検索処理開始");
 
         // 種目をバレーボールに選択
-        page.select('select[name="syumoku"]', '025');
+        syumoku = await page.waitForSelector('select[name="syumoku"]');
+        syumoku.select('select[name="syumoku"]', '025');
 
         // リロードがかかるので少し待つ
         // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
@@ -398,9 +358,11 @@ function lineNotifyMessage(message, token) {
 
             // 検索画面に遷移する
             await page.goto('https://www.net.city.nagoya.jp/cgi-bin/sp05001'); // 表示したいURL
+            await page.waitFor(2000);
 
             // 種目をバレーボールに選択
-            page.select('select[name="syumoku"]', '025');
+            syumoku = await page.waitForSelector('select[name="syumoku"]');
+            syumoku.select('select[name="syumoku"]', '025');
             await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
 
             // リロードがかかるので少し待つ
@@ -410,6 +372,53 @@ function lineNotifyMessage(message, token) {
 
         lineNotifyMessage('\n\n現在のスポーツセンターの空き状況検索を終了します...', LINE_TOKEN)
     }
+
+    // 片桐のフットサルページ更新
+    await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
+
+    await page.type('input[name="em"]', RYOTA_LOGIN_ID);
+    await page.type('input[name="pw"]', RYOTA_PASSWORD);
+    page.click('.btn1');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+    await page.goto('https://www.net-menber.com/myp/team/edit?team_id=119057'); // サークル編集ページ
+
+    // page.click('a[href="https://www.net-menber.com/myp/team/edit?team_id=119057"]');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    page.click('.btn2');
+    await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // page.click('a[href="/myp/card_use/logout"]');
+    await page.goto('https://www.net-menber.com/myp/card_use/logout'); // サークル編集ページ
+
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // ゆるスポの更新
+    // await page.goto('https://www.net-menber.com/account_login/login'); // 表示したいURL
+
+    // await page.type('input[name="em"]', LOGIN_ID);
+    // await page.type('input[name="pw"]', PASSWORD);
+    // page.click('.btn1');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+
+    // page.click('a[href="/myp/team/edit?team_id=66103"]');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // page.click('.btn2');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // await page.goto('https://www.net-menber.com/myp/team/list'); // サークル編集ページ
+
+    // page.click('a[href="/myp/team/edit?team_id=137497"]');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
+    // page.click('.btn2');
+    // await page.waitForNavigation({ timeout: 60000, waitUntil: "domcontentloaded" });
+
 
     browser.close();
 
